@@ -50,7 +50,7 @@ private UUID idClient;
 
     // ===== Getters & Setters =====
 
-    public String getIdClient() {
+    public UUID getIdClient() {
         return idClient;
     }
 
