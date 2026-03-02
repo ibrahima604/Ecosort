@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">EcoSort</string>
+    <string name="menu_home">Accueil</string>
+    <string name="menu_profile">Profil</string>
+    <string name="menu_history">Historique de scan</string>
+    <string name="menu_stats">Statistiques</string>
+    <string name="menu_tips">Conseils de tri</string>
+    <string name="menu_settings">Paramètres</string>
+    <string name="titre_header">EcoSort</string>
+    <string name="slogan">Vers un tri responsable 🌿"</string>
+    <!-- Obligatoire pour le toggle -->
+    <string name="open_drawer">Ouvrir le menu</string>
+    <string name="close_drawer">Fermer le menu</string>
+</resources>

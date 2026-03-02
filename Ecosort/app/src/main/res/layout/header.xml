@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="@drawable/header_background"
+    android:padding="16dp"
+    android:gravity="bottom">
+
+    <!-- Logo circulaire -->
+    <ImageView
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:src="@drawable/logo"
+        android:contentDescription="@string/titre_header"
+        android:scaleType="centerCrop"
+        android:layout_gravity="center_horizontal"
+        android:clipToOutline="true"
+        android:background="@drawable/circle_shadow"/>
+
+    <!-- Titre principal -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/titre_header"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="8dp"/>
+
+    <!-- Slogan ou message éco-responsable -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:text="@string/slogan"
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="4dp"
+        android:textStyle="italic"/>
+</LinearLayout>
