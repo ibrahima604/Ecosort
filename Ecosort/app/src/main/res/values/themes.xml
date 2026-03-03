@@ -16,4 +16,8 @@
 
         <!-- Customize your theme here -->
     </style>
+    <!-- Thème pour SplashScreen -->
+    <style name="Theme.Ecosort.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
 </resources>

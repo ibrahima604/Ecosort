@@ -8,6 +8,10 @@
     <string name="menu_settings">Paramètres</string>
     <string name="titre_header">EcoSort</string>
     <string name="slogan">Vers un tri responsable 🌿"</string>
+    <string name="scan">Scanner</string>
+    <string name="camera">Camera Preview</string>
+    <string name="upload">Upload</string>
+    <string name="demarrage">Développement durable, recyclons pour un avenir meilleur !</string>
     <!-- Obligatoire pour le toggle -->
     <string name="open_drawer">Ouvrir le menu</string>
     <string name="close_drawer">Fermer le menu</string>
