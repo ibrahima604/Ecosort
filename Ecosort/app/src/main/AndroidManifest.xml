@@ -4,8 +4,9 @@
     package="com.example.ecosort">
 
     <!-- Permissions éventuelles -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
-    <!-- Ajouter d'autres permissions si nécessaire -->
+
 
     <application
         android:allowBackup="true"
