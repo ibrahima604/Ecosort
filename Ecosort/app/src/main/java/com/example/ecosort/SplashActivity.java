@@ -2,13 +2,13 @@ package com.example.ecosort;
 
 import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.graphics.text.LineBreaker;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-
 public class SplashActivity extends AppCompatActivity {
 
     private static final long SPLASH_DURATION = 3000; // 3 secondes
@@ -22,7 +22,7 @@ public class SplashActivity extends AppCompatActivity {
 
         // Juste pour API >= 26, sinon ignorer
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            splashText.setJustificationMode(android.text.Layout.JUSTIFICATION_MODE_INTER_WORD);
+            splashText.setJustificationMode(LineBreaker.JUSTIFICATION_MODE_INTER_WORD);
         }
 
         // Démarrer animation fade-in après que la vue soit attachée
