@@ -15,4 +15,5 @@
     <!-- Obligatoire pour le toggle -->
     <string name="open_drawer">Ouvrir le menu</string>
     <string name="close_drawer">Fermer le menu</string>
+    <string name="gestion_des_d_chets">Gestion des déchets</string>
 </resources>
