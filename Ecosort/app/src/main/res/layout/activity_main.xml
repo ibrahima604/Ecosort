@@ -38,15 +38,15 @@
                 android:layout_width="280dp"
                 android:layout_height="280dp"
                 android:background="@drawable/camera_frame_bg"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
+                app:layout_constraintTop_toTopOf="parent">
 
                 <androidx.camera.view.PreviewView
                     android:id="@+id/previewView"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent" />
 
             </FrameLayout>
 
@@ -55,35 +55,35 @@
                 android:id="@+id/buttonContainer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center"
+                android:orientation="horizontal"
                 android:weightSum="2"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnScan"
-                    android:layout_height="55dp"
                     android:layout_width="wrap_content"
+                    android:layout_height="55dp"
                     android:layout_marginEnd="10dp"
-                    android:maxWidth="320dp"
+                    android:backgroundTint="@color/teal_700"
                     android:gravity="center"
+                    android:maxWidth="320dp"
                     android:minWidth="120dp"
                     android:text="@string/scan"
-                    android:textAllCaps="false"
-                    android:backgroundTint="@color/teal_700"/>
+                    android:textAllCaps="false" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnUpload"
                     android:layout_width="wrap_content"
                     android:layout_height="55dp"
-                    android:maxWidth="320dp"
-                    android:text="@string/upload"
+                    android:backgroundTint="@color/teal_700"
                     android:gravity="center"
+                    android:maxWidth="320dp"
                     android:minWidth="120dp"
-                    android:textAllCaps="false"
-                    android:backgroundTint="@color/teal_700"/>
+                    android:text="@string/upload"
+                    android:textAllCaps="false" />
 
             </LinearLayout>
 
