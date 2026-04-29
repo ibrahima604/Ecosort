@@ -1,18 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.ecosort">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions éventuelles -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera"/>
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <!-- Si tu testes sur vrai téléphone avec HTTP (pas HTTPS), ajoute aussi dans <application> : -->
-    <!-- android:usesCleartextTraffic="true" -->
-
 
     <application
         android:allowBackup="true"
@@ -23,10 +16,9 @@
         android:label="Ecosort"
         android:supportsRtl="true"
         android:theme="@style/Theme.Ecosort"
-    android:usesCleartextTraffic="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- SplashActivity comme Launcher -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -37,10 +29,13 @@
             </intent-filter>
         </activity>
 
-        <!-- MainActivity normale -->
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
+            android:exported="false" />
 
     </application>
 

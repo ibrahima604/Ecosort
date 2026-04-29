@@ -39,23 +39,22 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Clé SharedPreferences — si elle existe, l'utilisateur est déjà enregistré
-    private static final String PREFS_NAME    = "ecosort_prefs";
+    private static final String PREFS_NAME     = "ecosort_prefs";
     private static final String KEY_REGISTERED = "user_registered";
+    private static final String KEY_EMAIL      = "user_email";
+    private static final String ADMIN_EMAIL    = "admin604@gmail.com";
 
-    PreviewView previewView;
-    DrawerLayout drawerLayout;
+    PreviewView    previewView;
+    DrawerLayout   drawerLayout;
     NavigationView navigationView;
-    Toolbar toolbar;
+    Toolbar        toolbar;
 
-    // Launcher permission caméra
     ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) openCamera();
                 else Toast.makeText(this, "Permission caméra refusée", Toast.LENGTH_SHORT).show();
             });
 
-    // Launcher galerie
     ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -90,12 +89,12 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if      (id == R.id.nav_home)     Toast.makeText(this, "Accueil",     Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_profile)  Toast.makeText(this, "Profil",      Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_history)  Toast.makeText(this, "Historique",  Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_stats)    Toast.makeText(this, "Statistiques",Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_tips)     Toast.makeText(this, "Conseils",    Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_settings) Toast.makeText(this, "Paramètres",  Toast.LENGTH_SHORT).show();
+            if      (id == R.id.nav_home)     Toast.makeText(this, "Accueil",      Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_profile)  Toast.makeText(this, "Profil",       Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_history)  Toast.makeText(this, "Historique",   Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_stats)    Toast.makeText(this, "Statistiques", Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_tips)     Toast.makeText(this, "Conseils",     Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_settings) Toast.makeText(this, "Paramètres",   Toast.LENGTH_SHORT).show();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
@@ -108,37 +107,52 @@ public class MainActivity extends AppCompatActivity {
             openCamera();
         }
 
-        // Vérifier si c'est la première ouverture
+        // ===== LOGIQUE DE ROUTAGE =====
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        boolean isRegistered = prefs.getBoolean(KEY_REGISTERED, false);
+        boolean isRegistered    = prefs.getBoolean(KEY_REGISTERED, false);
+        String  savedEmail      = prefs.getString(KEY_EMAIL, "");
 
         if (!isRegistered) {
+            // Première ouverture → dialog inscription
             showUserInfoDialog();
+        } else {
+            // Déjà inscrit → routage direct selon email
+            routeByEmail(savedEmail);
         }
     }
 
-    /*
-     * Affiche le popup de saisie des informations utilisateur.
-     * Non annulable : l'utilisateur doit remplir le formulaire.
+    /**
+     * Redirige vers AdminActivity ou reste sur MainActivity selon l'email.
+     */
+    private void routeByEmail(String email) {
+        if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
+            startActivity(new Intent(this, AdminActivity.class));
+            finish();
+        }
+        // Sinon on reste sur MainActivity (écran utilisateur normal)
+    }
+
+    /**
+     * Dialog première ouverture — saisie nom / prénom / email.
+     * Vérifie l'email en base via l'API, puis route.
      */
     private void showUserInfoDialog() {
         View dialogView = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_user_info, null);
 
-        TextInputLayout  layoutNom    = dialogView.findViewById(R.id.layoutNom);
-        TextInputLayout  layoutPrenom = dialogView.findViewById(R.id.layoutPrenom);
-        TextInputLayout  layoutEmail  = dialogView.findViewById(R.id.layoutEmail);
-        TextInputEditText etNom       = dialogView.findViewById(R.id.etNom);
-        TextInputEditText etPrenom    = dialogView.findViewById(R.id.etPrenom);
-        TextInputEditText etEmail     = dialogView.findViewById(R.id.etEmail);
-        MaterialButton    btnValider  = dialogView.findViewById(R.id.btnValider);
+        TextInputLayout   layoutNom    = dialogView.findViewById(R.id.layoutNom);
+        TextInputLayout   layoutPrenom = dialogView.findViewById(R.id.layoutPrenom);
+        TextInputLayout   layoutEmail  = dialogView.findViewById(R.id.layoutEmail);
+        TextInputEditText etNom        = dialogView.findViewById(R.id.etNom);
+        TextInputEditText etPrenom     = dialogView.findViewById(R.id.etPrenom);
+        TextInputEditText etEmail      = dialogView.findViewById(R.id.etEmail);
+        MaterialButton    btnValider   = dialogView.findViewById(R.id.btnValider);
 
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(dialogView)
-                .setCancelable(false)  // impossible de fermer sans valider
+                .setCancelable(false)
                 .create();
 
-        // Arrondir les coins du dialog
         if (dialog.getWindow() != null) {
             dialog.getWindow().setBackgroundDrawableResource(
                     android.R.drawable.dialog_holo_light_frame);
@@ -149,82 +163,50 @@ public class MainActivity extends AppCompatActivity {
             String prenom = etPrenom.getText() != null ? etPrenom.getText().toString().trim() : "";
             String email  = etEmail.getText()  != null ? etEmail.getText().toString().trim()  : "";
 
-            // Validation des champs
+            // --- Validation ---
             boolean valid = true;
-
             if (TextUtils.isEmpty(nom)) {
-                layoutNom.setError("Le nom est obligatoire");
-                valid = false;
-            } else {
-                layoutNom.setError(null);
-            }
+                layoutNom.setError("Le nom est obligatoire"); valid = false;
+            } else { layoutNom.setError(null); }
 
             if (TextUtils.isEmpty(prenom)) {
-                layoutPrenom.setError("Le prénom est obligatoire");
-                valid = false;
-            } else {
-                layoutPrenom.setError(null);
-            }
+                layoutPrenom.setError("Le prénom est obligatoire"); valid = false;
+            } else { layoutPrenom.setError(null); }
 
             if (TextUtils.isEmpty(email)) {
-                layoutEmail.setError("L'email est obligatoire");
-                valid = false;
+                layoutEmail.setError("L'email est obligatoire"); valid = false;
             } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                layoutEmail.setError("Email invalide");
-                valid = false;
-            } else {
-                layoutEmail.setError(null);
-            }
+                layoutEmail.setError("Email invalide"); valid = false;
+            } else { layoutEmail.setError(null); }
 
             if (!valid) return;
 
-            // Désactiver le bouton pendant le traitement
             btnValider.setEnabled(false);
-            btnValider.setText("Enregistrement…");
+            btnValider.setText("Vérification…");
 
-            // 1. Sauvegarder en SQLite local
-            DatabaseHelper dbHelper = new DatabaseHelper(this);
-            long localId = dbHelper.insertUser(nom, prenom, email);
-
-            if (localId == -1) {
-                Toast.makeText(this, "Erreur de sauvegarde locale", Toast.LENGTH_SHORT).show();
-                btnValider.setEnabled(true);
-                btnValider.setText("Commencer");
-                return;
-            }
-
-            // 2. Appeler l'API Spring Boot pour enregistrer en backend
-            UserRequest userRequest = new UserRequest(nom, prenom, email);
-            RetrofitClient.getApiService().createUser(userRequest)
-                    .enqueue(new Callback<Void>() {
+            // --- Vérifier si l'email existe déjà en base ---
+            RetrofitClient.getApiService().getUserByEmail(email)
+                    .enqueue(new Callback<UserResponse>() {
 
                         @Override
-                        public void onResponse(Call<Void> call, Response<Void> response) {
-                            if (response.isSuccessful()) {
-                                // Succès : marquer comme enregistré
-                                saveRegistrationFlag();
-                                dialog.dismiss();
-                                Toast.makeText(MainActivity.this,
-                                        "Bienvenue " + prenom + " !", Toast.LENGTH_LONG).show();
+                        public void onResponse(Call<UserResponse> call,
+                                               Response<UserResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                // Email déjà en base → on récupère et on route
+                                UserResponse existing = response.body();
+                                saveUserLocally(existing.getNom(), existing.getPrenom(),
+                                        existing.getEmail(), dialog);
                             } else {
-                                // L'API a répondu mais avec une erreur (ex: email déjà existant)
-                                // On sauvegarde quand même localement et on continue
-                                saveRegistrationFlag();
-                                dialog.dismiss();
-                                Toast.makeText(MainActivity.this,
-                                        "Bienvenue " + prenom + " !", Toast.LENGTH_SHORT).show();
+                                // Email non trouvé → créer l'utilisateur
+                                createUser(nom, prenom, email, dialog,
+                                        btnValider, layoutEmail);
                             }
                         }
 
                         @Override
-                        public void onFailure(Call<Void> call, Throwable t) {
-                            // Pas de connexion réseau : on sauvegarde quand même localement
-                            // et on marque comme enregistré pour ne plus afficher le popup
-                            saveRegistrationFlag();
-                            dialog.dismiss();
-                            Toast.makeText(MainActivity.this,
-                                    "Sauvegardé localement (pas de réseau)",
-                                    Toast.LENGTH_SHORT).show();
+                        public void onFailure(Call<UserResponse> call, Throwable t) {
+                            // Pas de réseau → sauvegarde locale uniquement
+                            saveOffline(nom, prenom, email, dialog);
                         }
                     });
         });
@@ -232,10 +214,87 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Enregistre la clé dans SharedPreferences pour ne plus afficher le popup
+    /**
+     * Crée un nouvel utilisateur via POST /api/users
+     */
+    private void createUser(String nom, String prenom, String email,
+                            AlertDialog dialog, MaterialButton btn,
+                            TextInputLayout layoutEmail) {
+
+        UserRequest userRequest = new UserRequest(nom, prenom, email);
+        RetrofitClient.getApiService().createUser(userRequest)
+                .enqueue(new Callback<Void>() {
+
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.isSuccessful()) {
+                            saveUserLocally(nom, prenom, email, dialog);
+                        } else if (response.code() == 409) {
+                            // Email déjà pris (conflict)
+                            runOnUiThread(() -> {
+                                layoutEmail.setError("Cet email est déjà utilisé");
+                                btn.setEnabled(true);
+                                btn.setText("Commencer");
+                            });
+                        } else {
+                            // Autre erreur serveur → on continue quand même
+                            saveUserLocally(nom, prenom, email, dialog);
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        saveOffline(nom, prenom, email, dialog);
+                    }
+                });
+    }
+
+    /**
+     * Sauvegarde locale + SharedPreferences + routage final.
+     */
+    private void saveUserLocally(String nom, String prenom,
+                                 String email, AlertDialog dialog) {
+        // SQLite local
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        dbHelper.insertUser(nom, prenom, email);
+
+        // SharedPreferences
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                .putBoolean(KEY_REGISTERED, true)
+                .putString(KEY_EMAIL, email)
+                .apply();
+
+        runOnUiThread(() -> {
+            dialog.dismiss();
+            Toast.makeText(this, "Bienvenue " + prenom + " !",
+                    Toast.LENGTH_LONG).show();
+            routeByEmail(email);
+        });
+    }
+
+    /**
+     * Mode hors ligne : sauvegarde sans vérification API.
+     */
+    private void saveOffline(String nom, String prenom,
+                             String email, AlertDialog dialog) {
+        DatabaseHelper dbHelper = new DatabaseHelper(this);
+        dbHelper.insertUser(nom, prenom, email);
+
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                .putBoolean(KEY_REGISTERED, true)
+                .putString(KEY_EMAIL, email)
+                .apply();
+
+        runOnUiThread(() -> {
+            dialog.dismiss();
+            Toast.makeText(this, "Sauvegardé localement (pas de réseau)",
+                    Toast.LENGTH_SHORT).show();
+            routeByEmail(email);
+        });
+    }
+
     private void saveRegistrationFlag() {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .edit()
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(KEY_REGISTERED, true)
                 .apply();
     }
@@ -250,7 +309,8 @@ public class MainActivity extends AppCompatActivity {
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview);
+                cameraProvider.bindToLifecycle(
+                        this, CameraSelector.DEFAULT_BACK_CAMERA, preview);
             } catch (ExecutionException | InterruptedException e) {
                 e.printStackTrace();
             }
