@@ -6,11 +6,13 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -39,6 +41,7 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG            = "MainActivity";
     private static final String PREFS_NAME     = "ecosort_prefs";
     private static final String KEY_REGISTERED = "user_registered";
     private static final String KEY_EMAIL      = "user_email";
@@ -66,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // CORRECTION 1 : initialiser Retrofit AVANT tout appel réseau
+        RetrofitClient.init(this);
 
         drawerLayout   = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
@@ -99,6 +105,19 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        // CORRECTION 2 : onBackPressed déprécié → OnBackPressedCallback
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
+
         // Caméra
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -113,29 +132,19 @@ public class MainActivity extends AppCompatActivity {
         String  savedEmail      = prefs.getString(KEY_EMAIL, "");
 
         if (!isRegistered) {
-            // Première ouverture → dialog inscription
             showUserInfoDialog();
         } else {
-            // Déjà inscrit → routage direct selon email
             routeByEmail(savedEmail);
         }
     }
 
-    /**
-     * Redirige vers AdminActivity ou reste sur MainActivity selon l'email.
-     */
     private void routeByEmail(String email) {
         if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
             startActivity(new Intent(this, AdminActivity.class));
             finish();
         }
-        // Sinon on reste sur MainActivity (écran utilisateur normal)
     }
 
-    /**
-     * Dialog première ouverture — saisie nom / prénom / email.
-     * Vérifie l'email en base via l'API, puis route.
-     */
     private void showUserInfoDialog() {
         View dialogView = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_user_info, null);
@@ -154,8 +163,8 @@ public class MainActivity extends AppCompatActivity {
                 .create();
 
         if (dialog.getWindow() != null) {
-            dialog.getWindow().setBackgroundDrawableResource(
-                    android.R.drawable.dialog_holo_light_frame);
+            dialog.getWindow().setBackgroundDrawable(
+                    new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
         }
 
         btnValider.setOnClickListener(v -> {
@@ -163,7 +172,6 @@ public class MainActivity extends AppCompatActivity {
             String prenom = etPrenom.getText() != null ? etPrenom.getText().toString().trim() : "";
             String email  = etEmail.getText()  != null ? etEmail.getText().toString().trim()  : "";
 
-            // --- Validation ---
             boolean valid = true;
             if (TextUtils.isEmpty(nom)) {
                 layoutNom.setError("Le nom est obligatoire"); valid = false;
@@ -184,28 +192,23 @@ public class MainActivity extends AppCompatActivity {
             btnValider.setEnabled(false);
             btnValider.setText("Vérification…");
 
-            // --- Vérifier si l'email existe déjà en base ---
             RetrofitClient.getApiService().getUserByEmail(email)
                     .enqueue(new Callback<UserResponse>() {
-
                         @Override
                         public void onResponse(Call<UserResponse> call,
                                                Response<UserResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
-                                // Email déjà en base → on récupère et on route
                                 UserResponse existing = response.body();
                                 saveUserLocally(existing.getNom(), existing.getPrenom(),
                                         existing.getEmail(), dialog);
                             } else {
-                                // Email non trouvé → créer l'utilisateur
-                                createUser(nom, prenom, email, dialog,
-                                        btnValider, layoutEmail);
+                                createUser(nom, prenom, email, dialog, btnValider, layoutEmail);
                             }
                         }
 
                         @Override
                         public void onFailure(Call<UserResponse> call, Throwable t) {
-                            // Pas de réseau → sauvegarde locale uniquement
+                            Log.e(TAG, "Erreur réseau getUserByEmail", t);
                             saveOffline(nom, prenom, email, dialog);
                         }
                     });
@@ -214,9 +217,6 @@ public class MainActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    /**
-     * Crée un nouvel utilisateur via POST /api/users
-     */
     private void createUser(String nom, String prenom, String email,
                             AlertDialog dialog, MaterialButton btn,
                             TextInputLayout layoutEmail) {
@@ -224,41 +224,35 @@ public class MainActivity extends AppCompatActivity {
         UserRequest userRequest = new UserRequest(nom, prenom, email);
         RetrofitClient.getApiService().createUser(userRequest)
                 .enqueue(new Callback<Void>() {
-
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
                             saveUserLocally(nom, prenom, email, dialog);
                         } else if (response.code() == 409) {
-                            // Email déjà pris (conflict)
                             runOnUiThread(() -> {
                                 layoutEmail.setError("Cet email est déjà utilisé");
                                 btn.setEnabled(true);
                                 btn.setText("Commencer");
                             });
                         } else {
-                            // Autre erreur serveur → on continue quand même
+                            Log.w(TAG, "createUser code inattendu : " + response.code());
                             saveUserLocally(nom, prenom, email, dialog);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
+                        Log.e(TAG, "Erreur réseau createUser", t);
                         saveOffline(nom, prenom, email, dialog);
                     }
                 });
     }
 
-    /**
-     * Sauvegarde locale + SharedPreferences + routage final.
-     */
     private void saveUserLocally(String nom, String prenom,
                                  String email, AlertDialog dialog) {
-        // SQLite local
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         dbHelper.insertUser(nom, prenom, email);
 
-        // SharedPreferences
         getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                 .putBoolean(KEY_REGISTERED, true)
                 .putString(KEY_EMAIL, email)
@@ -272,9 +266,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Mode hors ligne : sauvegarde sans vérification API.
-     */
     private void saveOffline(String nom, String prenom,
                              String email, AlertDialog dialog) {
         DatabaseHelper dbHelper = new DatabaseHelper(this);
@@ -293,12 +284,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void saveRegistrationFlag() {
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
-                .putBoolean(KEY_REGISTERED, true)
-                .apply();
-    }
-
     private void openCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(this);
@@ -312,17 +297,12 @@ public class MainActivity extends AppCompatActivity {
                 cameraProvider.bindToLifecycle(
                         this, CameraSelector.DEFAULT_BACK_CAMERA, preview);
             } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
+                // CORRECTION 3 : remplace e.printStackTrace() par Log
+                Log.e(TAG, "Erreur ouverture caméra", e);
+                runOnUiThread(() ->
+                        Toast.makeText(this, "Erreur caméra : " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show());
             }
         }, ContextCompat.getMainExecutor(this));
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
     }
 }

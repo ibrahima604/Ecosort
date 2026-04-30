@@ -9,12 +9,21 @@ public class RetrofitClient {
     private static Retrofit retrofit;
     private static String BASE_URL;
 
+    // CORRECTION : réinitialiser retrofit si l'URL change
     public static void init(Context context) {
-        BASE_URL = context.getString(R.string.base_url);
+        String newUrl = context.getString(R.string.base_url);
+        if (!newUrl.equals(BASE_URL)) {
+            BASE_URL = newUrl;
+            retrofit = null; // force la reconstruction
+        }
     }
 
     public static Retrofit getInstance() {
         if (retrofit == null) {
+            if (BASE_URL == null || BASE_URL.isEmpty()) {
+                throw new IllegalStateException(
+                        "RetrofitClient non initialisé. Appelez RetrofitClient.init(context) d'abord.");
+            }
             retrofit = new Retrofit.Builder()
                     .baseUrl(BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
