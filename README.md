@@ -207,13 +207,13 @@ GET http://localhost:8989/api/admin/stats
 4. Brancher un appareil Android ou démarrer un émulateur
 5. Cliquer sur **Run ▶**
 
-> ⚠️ Le backend doit être démarré **avant** de lancer l'app pour que les appels réseau fonctionnent.
+>  Le backend doit être démarré **avant** de lancer l'app pour que les appels réseau fonctionnent.
 
 ---
 
 ## 8. Fonctionnalités détaillées
 
-### 👤 Côté Utilisateur
+### Côté Utilisateur
 
 | Fonctionnalité | Description |
 |---|---|
