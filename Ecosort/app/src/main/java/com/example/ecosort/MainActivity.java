@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -45,12 +46,22 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME     = "ecosort_prefs";
     private static final String KEY_REGISTERED = "user_registered";
     private static final String KEY_EMAIL      = "user_email";
-    private static final String ADMIN_EMAIL    = "admin604@gmail.com";
+    private static final String ADMIN_EMAIL    = "Admin604@gmail.com";
 
     PreviewView    previewView;
     DrawerLayout   drawerLayout;
     NavigationView navigationView;
     Toolbar        toolbar;
+
+    // classificateur TFLite
+    private PlasticClassifier classifier;
+
+    //bouton scanner
+    private MaterialButton btnScan;
+
+    // =========================================================
+    //  Launchers
+    // =========================================================
 
     ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -58,26 +69,44 @@ public class MainActivity extends AppCompatActivity {
                 else Toast.makeText(this, "Permission caméra refusée", Toast.LENGTH_SHORT).show();
             });
 
+    // galerie → analyse directe avec TFLite
     ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Toast.makeText(this, "Image sélectionnée", Toast.LENGTH_SHORT).show();
+                    try {
+                        android.net.Uri uri = result.getData().getData();
+                        Bitmap bmp = android.provider.MediaStore.Images.Media
+                                .getBitmap(getContentResolver(), uri);
+                        analyzeAndShow(bmp);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Erreur chargement image galerie", e);
+                        Toast.makeText(this, "Erreur chargement image", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
+
+    // =========================================================
+    //  onCreate
+    // =========================================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // CORRECTION 1 : initialiser Retrofit AVANT tout appel réseau
+        // Retrofit AVANT tout appel réseau
         RetrofitClient.init(this);
 
+        // charger le modèle TFLite
+        classifier = new PlasticClassifier(this);
+
+        // Views
         drawerLayout   = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
         toolbar        = findViewById(R.id.toolbar);
         previewView    = findViewById(R.id.previewView);
 
+        // Bouton Upload → galerie → analyse
         MaterialButton btnUpload = findViewById(R.id.btnUpload);
         btnUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -85,8 +114,21 @@ public class MainActivity extends AppCompatActivity {
             galleryLauncher.launch(intent);
         });
 
-        setSupportActionBar(toolbar);
+        // Bouton Scanner → capture frame caméra → analyse
+        btnScan = findViewById(R.id.btnScan);
+        if (btnScan != null) {
+            btnScan.setOnClickListener(v -> {
+                Bitmap frame = previewView.getBitmap();
+                if (frame != null) {
+                    analyzeAndShow(frame);
+                } else {
+                    Toast.makeText(this, "Caméra pas encore prête", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
 
+        // Toolbar + Drawer
+        setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
                 R.string.open_drawer, R.string.close_drawer);
@@ -95,17 +137,36 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if      (id == R.id.nav_home)     Toast.makeText(this, "Accueil",      Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_profile)  Toast.makeText(this, "Profil",       Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_history)  Toast.makeText(this, "Historique",   Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_stats)    Toast.makeText(this, "Statistiques", Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_tips)     Toast.makeText(this, "Conseils",     Toast.LENGTH_SHORT).show();
-            else if (id == R.id.nav_settings) Toast.makeText(this, "Paramètres",   Toast.LENGTH_SHORT).show();
+
+            if (id == R.id.nav_home) {
+                // Déjà sur l'accueil, on ferme juste le drawer
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }
+
+            if (id == R.id.nav_profile) {
+                new ProfileBottomSheet()
+                        .show(getSupportFragmentManager(), "profile");
+            }
+            else if (id == R.id.nav_stats) {
+                startActivity(new Intent(this, StatsActivity.class));
+            }
+            else if (id == R.id.nav_tips) {
+                // ConseillsFragment déjà implémenté — à brancher si tu as l'activité host
+                Toast.makeText(this, "Conseils (bientôt)", Toast.LENGTH_SHORT).show();
+            }
+            else if (id == R.id.nav_history) {
+                Toast.makeText(this, "Historique (bientôt)", Toast.LENGTH_SHORT).show();
+            }
+            else if (id == R.id.nav_settings) {
+                Toast.makeText(this, "Paramètres (bientôt)", Toast.LENGTH_SHORT).show();
+            }
+
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
-        // CORRECTION 2 : onBackPressed déprécié → OnBackPressedCallback
+        // Bouton retour physique
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -126,7 +187,7 @@ public class MainActivity extends AppCompatActivity {
             openCamera();
         }
 
-        // ===== LOGIQUE DE ROUTAGE =====
+        // Routage utilisateur / admin
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         boolean isRegistered    = prefs.getBoolean(KEY_REGISTERED, false);
         String  savedEmail      = prefs.getString(KEY_EMAIL, "");
@@ -138,12 +199,103 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void routeByEmail(String email) {
-        if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
-            startActivity(new Intent(this, AdminActivity.class));
-            finish();
+    // =========================================================
+    // Analyse TFLite + Dialog résultat
+    // =========================================================
+
+    private void analyzeAndShow(Bitmap bitmap) {
+        // Désactiver les boutons pendant l'analyse
+        runOnUiThread(() -> {
+            if (btnScan != null) btnScan.setEnabled(false);
+            Toast.makeText(this, "Analyse en cours…", Toast.LENGTH_SHORT).show();
+        });
+
+        new Thread(() -> {
+            float score = classifier.predict(bitmap);
+            PlasticClassifier.Result result = PlasticClassifier.interpret(score);
+
+            runOnUiThread(() -> {
+                if (btnScan != null) btnScan.setEnabled(true);
+                showResultDialog(result);
+            });
+        }).start();
+    }
+
+    private void showResultDialog(PlasticClassifier.Result result) {
+        // Couleur selon le type de résultat
+        int iconRes;
+        String titre;
+        switch (result.type) {
+            case PLASTIC:
+                iconRes = android.R.drawable.ic_dialog_alert;
+                titre   = "Plastique détecté";
+                break;
+            case UNCERTAIN:
+                iconRes = android.R.drawable.ic_dialog_info;
+                titre   = "Résultat incertain";
+                break;
+            case NOT_PLASTIC:
+                iconRes = android.R.drawable.ic_dialog_info;
+                titre   = "Non plastique";
+                break;
+            default:
+                iconRes = android.R.drawable.ic_dialog_alert;
+                titre   = " Erreur";
+                break;
+        }
+
+        String messageComplet = result.message + "\n\nScore : " + result.percent + "%";
+
+        // Si incertain → bouton "Réessayer"
+        if (result.type == PlasticClassifier.Type.UNCERTAIN) {
+            new AlertDialog.Builder(this)
+                    .setTitle(titre)
+                    .setMessage(messageComplet + "\n\nL'objet est mal cadré ou trop éloigné. Reprends la photo.")
+                    .setIcon(iconRes)
+                    .setPositiveButton("Réessayer", (d, w) -> d.dismiss())
+                    .show();
+        } else {
+            new AlertDialog.Builder(this)
+                    .setTitle(titre)
+                    .setMessage(messageComplet)
+                    .setIcon(iconRes)
+                    .setPositiveButton("OK", null)
+                    .show();
         }
     }
+
+    // =========================================================
+    //  Routage admin/user
+    // =========================================================
+
+    private void routeByEmail(String email) {
+        if (ADMIN_EMAIL.equalsIgnoreCase(email)) {
+            RetrofitClient.getApiService().getAdminByEmail(email)
+                    .enqueue(new Callback<AdminResponse>() {
+                        @Override
+                        public void onResponse(Call<AdminResponse> call,
+                                               Response<AdminResponse> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
+                                        .putString("admin_id", response.body().getIdClient())
+                                        .apply();
+                            }
+                            startActivity(new Intent(MainActivity.this, AdminActivity.class));
+                            finish();
+                        }
+
+                        @Override
+                        public void onFailure(Call<AdminResponse> call, Throwable t) {
+                            startActivity(new Intent(MainActivity.this, AdminActivity.class));
+                            finish();
+                        }
+                    });
+        }
+    }
+
+    // =========================================================
+    //  Dialog inscription
+    // =========================================================
 
     private void showUserInfoDialog() {
         View dialogView = LayoutInflater.from(this)
@@ -168,9 +320,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         btnValider.setOnClickListener(v -> {
-            String nom    = etNom.getText()    != null ? etNom.getText().toString().trim()    : "";
+            String nom    = etNom.getText()    != null ? etNom.getText().toString().trim() : "";
             String prenom = etPrenom.getText() != null ? etPrenom.getText().toString().trim() : "";
-            String email  = etEmail.getText()  != null ? etEmail.getText().toString().trim()  : "";
+            String email  = etEmail.getText()  != null ? etEmail.getText().toString().trim() : "";
 
             boolean valid = true;
             if (TextUtils.isEmpty(nom)) {
@@ -220,7 +372,6 @@ public class MainActivity extends AppCompatActivity {
     private void createUser(String nom, String prenom, String email,
                             AlertDialog dialog, MaterialButton btn,
                             TextInputLayout layoutEmail) {
-
         UserRequest userRequest = new UserRequest(nom, prenom, email);
         RetrofitClient.getApiService().createUser(userRequest)
                 .enqueue(new Callback<Void>() {
@@ -260,8 +411,7 @@ public class MainActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
             dialog.dismiss();
-            Toast.makeText(this, "Bienvenue " + prenom + " !",
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Bienvenue " + prenom + " !", Toast.LENGTH_LONG).show();
             routeByEmail(email);
         });
     }
@@ -278,11 +428,14 @@ public class MainActivity extends AppCompatActivity {
 
         runOnUiThread(() -> {
             dialog.dismiss();
-            Toast.makeText(this, "Sauvegardé localement (pas de réseau)",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Sauvegardé localement (pas de réseau)", Toast.LENGTH_SHORT).show();
             routeByEmail(email);
         });
     }
+
+    // =========================================================
+    //  Caméra (inchangé)
+    // =========================================================
 
     private void openCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
@@ -297,12 +450,22 @@ public class MainActivity extends AppCompatActivity {
                 cameraProvider.bindToLifecycle(
                         this, CameraSelector.DEFAULT_BACK_CAMERA, preview);
             } catch (ExecutionException | InterruptedException e) {
-                // CORRECTION 3 : remplace e.printStackTrace() par Log
                 Log.e(TAG, "Erreur ouverture caméra", e);
                 runOnUiThread(() ->
                         Toast.makeText(this, "Erreur caméra : " + e.getMessage(),
                                 Toast.LENGTH_SHORT).show());
             }
         }, ContextCompat.getMainExecutor(this));
+    }
+
+    // =========================================================
+    //  Cycle de vie
+    // =========================================================
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Libérer le modèle TFLite proprement
+        if (classifier != null) classifier.close();
     }
 }

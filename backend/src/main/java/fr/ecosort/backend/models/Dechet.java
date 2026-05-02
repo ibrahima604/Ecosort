@@ -34,5 +34,10 @@ public class Dechet {
     public int getIdDechet() { return idDechet; }
     public LocalDateTime getDateTri() { return dateTri; }
     public void setDateTri(LocalDateTime dateTri) { this.dateTri = dateTri; }
+    public Users getUser() { return user; }
+public void setUser(Users user) { this.user = user; }
+
+public TypeDechet getTypeDechet() { return typeDechet; }
+public void setTypeDechet(TypeDechet typeDechet) { this.typeDechet = typeDechet; }
 
 }

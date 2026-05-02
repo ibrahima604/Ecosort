@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Bande verte gauche + numéro -->
+        <LinearLayout
+            android:layout_width="52dp"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#2E7D32"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/tvNumeroConseil"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_numero_circle"
+                android:text="1" />
+        </LinearLayout>
+
+        <!-- Contenu texte -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvTitreConseil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#1B5E20"
+                android:layout_marginBottom="6dp"
+                android:text="Titre du conseil" />
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="2dp"
+                android:background="#A5D6A7"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvDescriptionConseil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="#4E6B4F"
+                android:lineSpacingMultiplier="1.4"
+                android:text="Description du conseil de tri écologique." />
+        </LinearLayout>
+
+        <!-- Icône décorative droite -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="♻️"
+            android:textSize="20sp"
+            android:paddingEnd="12dp"
+            android:paddingTop="16dp"
+            android:gravity="top" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

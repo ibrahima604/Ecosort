@@ -2,10 +2,10 @@ package com.example.ecosort;
 
 import com.google.gson.annotations.SerializedName;
 
-public class UserResponse {
+public class AdminResponse {
 
     @SerializedName("id_client")
-    private String idClient;
+    private String idClient; // UUID → String !
 
     private String nom;
     private String prenom;

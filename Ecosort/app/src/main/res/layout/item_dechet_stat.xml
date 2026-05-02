@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Ligne haut : étiquette + compteur -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+
+            <!-- Icône type déchet -->
+            <TextView
+                android:id="@+id/tvIconType"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                android:background="@drawable/bg_icon_type_round"
+                android:layout_marginEnd="12dp"
+                android:text="🗑️" />
+
+            <!-- Étiquette -->
+            <TextView
+                android:id="@+id/tvEtiquetteType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1B5E20"
+                android:text="Type de déchet" />
+
+            <!-- Compteur -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end">
+
+                <TextView
+                    android:id="@+id/tvCompteur"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#2E7D32"
+                    android:gravity="end"
+                    android:text="0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="scans"
+                    android:textSize="10sp"
+                    android:textColor="#9E9E9E"
+                    android:gravity="end" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Barre de progression -->
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            app:indicatorColor="#2E7D32"
+            app:trackColor="#E8F5E9"
+            app:trackCornerRadius="4dp"
+            android:progress="0"
+            android:max="100" />
+
+        <!-- Pourcentage -->
+        <TextView
+            android:id="@+id/tvPourcentage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0% du total"
+            android:textSize="11sp"
+            android:textColor="#9E9E9E"
+            android:gravity="end" />
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

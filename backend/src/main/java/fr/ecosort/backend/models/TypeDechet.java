@@ -23,5 +23,7 @@ public class TypeDechet {
     public int getIdTypeDechet() { return idTypeDechet; }
     public String getLabel() { return label; }
     public void setLabel(String label) { this.label = label; }
+    // Dans TypeDechet.java, ajoute juste ce getter :
+public String getEtiquette() { return label; }
 
 }

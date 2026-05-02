@@ -28,9 +28,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    //pour le tensorflow
+    aaptOptions {
+        noCompress += "tflite"
+    }
 }
 
 dependencies {
+    // TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.14.0")
     // AndroidX core
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("androidx.core:core:1.13.1")
@@ -44,6 +50,8 @@ dependencies {
 
     // Fragment
     implementation("androidx.fragment:fragment:1.8.1")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // CameraX
     implementation("androidx.camera:camera-core:1.3.4")

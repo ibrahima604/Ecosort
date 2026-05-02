@@ -18,12 +18,20 @@ public class ConseilsAdapter extends RecyclerView.Adapter<ConseilsAdapter.ViewHo
         void onDelete(ConseilResponse conseil, int position);
     }
 
+    public interface OnEditListener {
+        void onEdit(ConseilResponse conseil);
+    }
+
     private final List<ConseilResponse> items;
     private final OnDeleteListener      deleteListener;
+    private final OnEditListener        editListener;
 
-    public ConseilsAdapter(List<ConseilResponse> items, OnDeleteListener deleteListener) {
+    public ConseilsAdapter(List<ConseilResponse> items,
+                           OnDeleteListener deleteListener,
+                           OnEditListener editListener) {
         this.items          = items;
         this.deleteListener = deleteListener;
+        this.editListener   = editListener;
     }
 
     @NonNull
@@ -41,22 +49,23 @@ public class ConseilsAdapter extends RecyclerView.Adapter<ConseilsAdapter.ViewHo
         holder.tvDescription.setText(conseil.getDescription());
         holder.btnSupprimer.setOnClickListener(v ->
                 deleteListener.onDelete(conseil, holder.getAdapterPosition()));
+        holder.btnModifier.setOnClickListener(v ->
+                editListener.onEdit(conseil));
     }
 
     @Override
-    public int getItemCount() {
-        return items.size();
-    }
+    public int getItemCount() { return items.size(); }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView       tvTitre, tvDescription;
-        MaterialButton btnSupprimer;
+        MaterialButton btnSupprimer, btnModifier;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitre       = itemView.findViewById(R.id.tv_titre);
             tvDescription = itemView.findViewById(R.id.tv_description);
             btnSupprimer  = itemView.findViewById(R.id.btn_supprimer);
+            btnModifier   = itemView.findViewById(R.id.btn_modifier);
         }
     }
 }

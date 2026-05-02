@@ -1,5 +1,6 @@
 package fr.ecosort.backend.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,18 +12,19 @@ public class Admin extends Users {
     private String password;
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private java.util.List<Conseil> conseils;
 
-   public Admin(String nom, String prenom, String email, String password) {
-    super();
-    setNom(nom);
-    setPrenom(prenom);
-    setEmail(email);
-    this.password = password;
-}
+    public Admin() { super(); }
 
+    public Admin(String nom, String prenom, String email, String password) {
+        super();
+        setNom(nom);
+        setPrenom(prenom);
+        setEmail(email);
+        this.password = password;
+    }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 }
-
