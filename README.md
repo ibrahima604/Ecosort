@@ -137,29 +137,6 @@ backend/src/main/resources/application.properties
 ```
 
 Ce fichier **n'est pas versionné** sur GitHub (données sensibles). Il est fourni **en pièce jointe** dans l'email du projet.
-
-Voici son contenu complet :
-
-```properties
-# ── Base de données PostgreSQL Supabase ──────────────────────────
-spring.datasource.url=jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:6543/postgres
-spring.datasource.username=postgres.yjjaywksvbbxhjcjxtfp
-spring.datasource.password=EcoSort758730
-spring.datasource.driver-class-name=org.postgresql.Driver
-
-# ── JPA / Hibernate ──────────────────────────────────────────────
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-
-# ── Serveur ──────────────────────────────────────────────────────
-server.port=8989
-
-# ── Logs de debug ────────────────────────────────────────────────
-logging.level.org.springframework.web=DEBUG
-logging.level.com.fasterxml.jackson=DEBUG
-```
-
 > La base de données est **active et opérationnelle** sur Supabase.  
 > Les tables sont créées automatiquement au premier démarrage (`ddl-auto=update`).
 
