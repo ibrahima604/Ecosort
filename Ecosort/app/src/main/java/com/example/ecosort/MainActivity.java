@@ -53,11 +53,8 @@ public class MainActivity extends AppCompatActivity {
     NavigationView navigationView;
     Toolbar        toolbar;
 
-    // classificateur TFLite
     private PlasticClassifier classifier;
-
-    //bouton scanner
-    private MaterialButton btnScan;
+    private MaterialButton    btnScan;
 
     // =========================================================
     //  Launchers
@@ -69,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
                 else Toast.makeText(this, "Permission caméra refusée", Toast.LENGTH_SHORT).show();
             });
 
-    // galerie → analyse directe avec TFLite
     ActivityResultLauncher<Intent> galleryLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
@@ -94,19 +90,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Retrofit AVANT tout appel réseau
         RetrofitClient.init(this);
 
-        // charger le modèle TFLite
         classifier = new PlasticClassifier(this);
 
-        // Views
         drawerLayout   = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view);
         toolbar        = findViewById(R.id.toolbar);
         previewView    = findViewById(R.id.previewView);
 
-        // Bouton Upload → galerie → analyse
         MaterialButton btnUpload = findViewById(R.id.btnUpload);
         btnUpload.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
@@ -114,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
             galleryLauncher.launch(intent);
         });
 
-        // Bouton Scanner → capture frame caméra → analyse
         btnScan = findViewById(R.id.btnScan);
         if (btnScan != null) {
             btnScan.setOnClickListener(v -> {
@@ -127,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
-        // Toolbar + Drawer
         setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawerLayout, toolbar,
@@ -135,38 +125,43 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
+        // ─── Navigation : chaque lien du navbar branché ───────────────────────
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
 
             if (id == R.id.nav_home) {
-                // Déjà sur l'accueil, on ferme juste le drawer
+                // Deja sur l'accueil, on ferme le drawer
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
 
             if (id == R.id.nav_profile) {
+                // BottomSheet profil deja configure
                 new ProfileBottomSheet()
                         .show(getSupportFragmentManager(), "profile");
-            }
-            else if (id == R.id.nav_stats) {
+
+            } else if (id == R.id.nav_stats) {
+                // Statistiques de l'utilisateur
                 startActivity(new Intent(this, StatsActivity.class));
-            }
-            else if (id == R.id.nav_tips) {
-                // ConseillsFragment déjà implémenté — à brancher si tu as l'activité host
-                Toast.makeText(this, "Conseils (bientôt)", Toast.LENGTH_SHORT).show();
-            }
-            else if (id == R.id.nav_history) {
-                Toast.makeText(this, "Historique (bientôt)", Toast.LENGTH_SHORT).show();
-            }
-            else if (id == R.id.nav_settings) {
+
+            } else if (id == R.id.nav_tips) {
+                // Conseils de tri
+                startActivity(new Intent(this, ConseillsActivity.class));
+
+            } else if (id == R.id.nav_history) {
+                // Historique des scans
+                startActivity(new Intent(this, HistoriqueActivity.class));
+
+            } else if (id == R.id.nav_settings) {
+                // Parametres - a implementer plus tard
                 Toast.makeText(this, "Paramètres (bientôt)", Toast.LENGTH_SHORT).show();
             }
 
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+        // ──────────────────────────────────────────────────────────────────────
 
-        // Bouton retour physique
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
@@ -179,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Caméra
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
@@ -187,7 +181,6 @@ public class MainActivity extends AppCompatActivity {
             openCamera();
         }
 
-        // Routage utilisateur / admin
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         boolean isRegistered    = prefs.getBoolean(KEY_REGISTERED, false);
         String  savedEmail      = prefs.getString(KEY_EMAIL, "");
@@ -200,11 +193,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    // Analyse TFLite + Dialog résultat
+    //  Analyse TFLite + Dialog resultat
     // =========================================================
 
     private void analyzeAndShow(Bitmap bitmap) {
-        // Désactiver les boutons pendant l'analyse
         runOnUiThread(() -> {
             if (btnScan != null) btnScan.setEnabled(false);
             Toast.makeText(this, "Analyse en cours…", Toast.LENGTH_SHORT).show();
@@ -222,7 +214,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showResultDialog(PlasticClassifier.Result result) {
-        // Couleur selon le type de résultat
         int iconRes;
         String titre;
         switch (result.type) {
@@ -240,13 +231,12 @@ public class MainActivity extends AppCompatActivity {
                 break;
             default:
                 iconRes = android.R.drawable.ic_dialog_alert;
-                titre   = " Erreur";
+                titre   = "Erreur";
                 break;
         }
 
         String messageComplet = result.message + "\n\nScore : " + result.percent + "%";
 
-        // Si incertain → bouton "Réessayer"
         if (result.type == PlasticClassifier.Type.UNCERTAIN) {
             new AlertDialog.Builder(this)
                     .setTitle(titre)
@@ -265,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    //  Routage admin/user
+    //  Routage admin / user
     // =========================================================
 
     private void routeByEmail(String email) {
@@ -434,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    //  Caméra (inchangé)
+    //  Camera
     // =========================================================
 
     private void openCamera() {
@@ -465,7 +455,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Libérer le modèle TFLite proprement
         if (classifier != null) classifier.close();
     }
 }

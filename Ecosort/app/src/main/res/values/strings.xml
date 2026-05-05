@@ -9,7 +9,7 @@
     <string name="titre_header">EcoSort</string>
     <string name="slogan">Vers un tri responsable 🌿"</string>
     <string name="scan">Scanner</string>
-    <string name="base_url"> https://bf0e-194-11-196-6.ngrok-free.app/</string>
+    <string name="base_url">https://ee01-193-55-29-171.ngrok-free.app/</string>
     <string name="camera">Camera Preview</string>
     <string name="upload">Upload</string>
     <string name="demarrage">Développement durable, recyclons pour un avenir meilleur !</string>
