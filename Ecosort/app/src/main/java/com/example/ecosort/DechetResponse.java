@@ -13,7 +13,7 @@ public class DechetResponse {
     @SerializedName("date_tri")
     private String dateTri;
 
-    public int    getIdDechet()      { return idDechet; }
-    public int    getIdTypeDechet()  { return idTypeDechet; }
-    public String getDateTri()       { return dateTri; }
+    public int    getIdDechet()     { return idDechet; }
+    public int    getIdTypeDechet() { return idTypeDechet; }
+    public String getDateTri()      { return dateTri; }
 }

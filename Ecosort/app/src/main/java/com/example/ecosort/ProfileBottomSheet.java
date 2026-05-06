@@ -163,10 +163,10 @@ public class ProfileBottomSheet extends BottomSheetDialogFragment {
         DatabaseHelper dbHelper = new DatabaseHelper(requireContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         android.content.ContentValues cv = new android.content.ContentValues();
-        cv.put(DatabaseHelper.COL_NOM,    nom);
-        cv.put(DatabaseHelper.COL_PRENOM, prenom);
+        cv.put(DatabaseHelper.COL_USER_NOM,    nom);
+        cv.put(DatabaseHelper.COL_USER_PRENOM, prenom);
         db.update(DatabaseHelper.TABLE_USERS, cv,
-                DatabaseHelper.COL_EMAIL + "=?",
+                DatabaseHelper.COL_USER_EMAIL + "=?",
                 new String[]{email});
         db.close();
     }
