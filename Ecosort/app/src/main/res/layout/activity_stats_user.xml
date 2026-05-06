@@ -7,7 +7,6 @@
     android:orientation="vertical"
     android:background="#F1F8F1">
 
-    <!-- AppBar verte -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -120,7 +119,6 @@
                 android:orientation="vertical"
                 android:visibility="gone">
 
-                <!-- Titre section chiffres -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -198,14 +196,14 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- ── Plastique + Non plastique ── -->
+                <!-- ── Plastique (VERT) + Non plastique (ROUGE) ── -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginBottom="10dp">
 
-                    <!-- Plastique -->
+                    <!-- Plastique → fond VERT clair, chiffre VERT -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_weight="1"
@@ -213,7 +211,7 @@
                         android:layout_marginEnd="5dp"
                         app:cardCornerRadius="18dp"
                         app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFEBEE">
+                        app:cardBackgroundColor="#E8F5E9">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -234,7 +232,7 @@
                                 android:layout_height="wrap_content"
                                 android:textSize="30sp"
                                 android:textStyle="bold"
-                                android:textColor="#F44336"
+                                android:textColor="#2E7D32"
                                 android:text="0" />
 
                             <TextView
@@ -242,12 +240,12 @@
                                 android:layout_height="wrap_content"
                                 android:text="Plastique"
                                 android:textSize="12sp"
-                                android:textColor="#B71C1C"
+                                android:textColor="#1B5E20"
                                 android:layout_marginTop="2dp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Non plastique -->
+                    <!-- Non Plastique → fond ROUGE clair, chiffre ROUGE -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="0dp"
                         android:layout_weight="1"
@@ -255,7 +253,7 @@
                         android:layout_marginStart="5dp"
                         app:cardCornerRadius="18dp"
                         app:cardElevation="3dp"
-                        app:cardBackgroundColor="#E8F5E9">
+                        app:cardBackgroundColor="#FFEBEE">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -276,7 +274,7 @@
                                 android:layout_height="wrap_content"
                                 android:textSize="30sp"
                                 android:textStyle="bold"
-                                android:textColor="#2E7D32"
+                                android:textColor="#F44336"
                                 android:text="0" />
 
                             <TextView
@@ -284,7 +282,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="Non Plastique"
                                 android:textSize="12sp"
-                                android:textColor="#1B5E20"
+                                android:textColor="#B71C1C"
                                 android:layout_marginTop="2dp" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
@@ -320,7 +318,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="240dp" />
 
-                        <!-- Légende manuelle -->
+                        <!-- Légende : Plastique VERT, Non Plastique ROUGE -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -328,10 +326,11 @@
                             android:gravity="center"
                             android:layout_marginTop="4dp">
 
+                            <!-- Plastique → carré VERT -->
                             <View
                                 android:layout_width="14dp"
                                 android:layout_height="14dp"
-                                android:background="#F44336"
+                                android:background="#4CAF50"
                                 android:layout_marginEnd="6dp" />
                             <TextView
                                 android:layout_width="wrap_content"
@@ -341,10 +340,11 @@
                                 android:textColor="#4E6B4F"
                                 android:layout_marginEnd="20dp" />
 
+                            <!-- Non Plastique → carré ROUGE -->
                             <View
                                 android:layout_width="14dp"
                                 android:layout_height="14dp"
-                                android:background="#4CAF50"
+                                android:background="#F44336"
                                 android:layout_marginEnd="6dp" />
                             <TextView
                                 android:layout_width="wrap_content"

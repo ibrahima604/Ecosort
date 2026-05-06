@@ -1,25 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF">
+    android:background="@drawable/splash_bg">
 
-    <!-- Logo au centre -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:src="@drawable/logo"
-        android:layout_gravity="center" />
+    <!-- Lueur radiale centrale (texture atmosphérique) -->
+    <View
+        android:id="@+id/glowCenter"
+        android:layout_width="320dp"
+        android:layout_height="320dp"
+        android:background="@drawable/glow_radial"
+        android:alpha="0.18"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Texte en haut -->
+    <!-- Ligne décorative horizontale haut -->
+    <View
+        android:id="@+id/lineTop"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@drawable/line_gradient"
+        android:alpha="0"
+        android:layout_marginTop="72dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"/>
+
+    <!-- Ligne décorative horizontale bas -->
+    <View
+        android:id="@+id/lineBottom"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="@drawable/line_gradient"
+        android:alpha="0"
+        android:layout_marginBottom="72dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"/>
+
+    <!-- Texte coin haut gauche (label catégorie) -->
     <TextView
-        android:id="@+id/splashText"
+        android:id="@+id/labelCorner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TRI · RECYCLAGE · ÉCO"
+        android:textColor="#2A5C3E"
+        android:textSize="9sp"
+        android:letterSpacing="0.25"
+        android:alpha="0"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <!-- Numéro version coin haut droit -->
+    <TextView
+        android:id="@+id/labelVersion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1.0"
+        android:textColor="#2A5C3E"
+        android:textSize="9sp"
+        android:letterSpacing="0.2"
+        android:alpha="0"
+        android:layout_marginEnd="24dp"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Conteneur central -->
+    <LinearLayout
+        android:id="@+id/centerContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:alpha="0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Stack d'anneaux concentriques -->
+        <FrameLayout
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_gravity="center">
+
+            <!-- Anneau externe (lent) -->
+            <View
+                android:id="@+id/ringOuter"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:background="@drawable/ring_outer"
+                android:alpha="0.12"/>
+
+            <!-- Anneau médian -->
+            <View
+                android:id="@+id/ringMid"
+                android:layout_width="148dp"
+                android:layout_height="148dp"
+                android:background="@drawable/ring_mid"
+                android:layout_gravity="center"
+                android:alpha="0.22"/>
+
+            <!-- Anneau intérieur (pulsant) -->
+            <View
+                android:id="@+id/logoRing"
+                android:layout_width="118dp"
+                android:layout_height="118dp"
+                android:background="@drawable/logo_ring"
+                android:layout_gravity="center"
+                android:alpha="0.5"/>
+
+            <!-- Logo -->
+            <ImageView
+                android:id="@+id/logo"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:src="@drawable/logo"
+                android:layout_gravity="center"
+                android:scaleType="fitCenter"/>
+        </FrameLayout>
+
+        <!-- Séparateur décoratif -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="28dp">
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="1dp"
+                android:background="#2A5C3E"/>
+
+            <View
+                android:layout_width="4dp"
+                android:layout_height="4dp"
+                android:background="@drawable/dot_accent"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"/>
+
+            <View
+                android:layout_width="32dp"
+                android:layout_height="1dp"
+                android:background="#2A5C3E"/>
+        </LinearLayout>
+
+        <!-- Nom de l'app -->
+        <TextView
+            android:id="@+id/appName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ECOSORT"
+            android:textColor="#D4EDDA"
+            android:textSize="30sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.22"
+            android:layout_marginTop="16dp"/>
+
+        <!-- Tagline -->
+        <TextView
+            android:id="@+id/splashText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/demarrage"
+            android:textColor="#4A9E68"
+            android:textSize="12sp"
+            android:letterSpacing="0.1"
+            android:gravity="center"
+            android:layout_marginTop="8dp"/>
+
+    </LinearLayout>
+
+    <!-- Barre de chargement en bas -->
+    <LinearLayout
+        android:id="@+id/bottomContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/demarrage"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"/>
-</FrameLayout>
+        android:orientation="vertical"
+        android:gravity="center"
+        android:alpha="0"
+        android:layout_marginBottom="52dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Track + barre -->
+        <FrameLayout
+            android:layout_width="140dp"
+            android:layout_height="2dp">
+
+            <View
+                android:layout_width="140dp"
+                android:layout_height="2dp"
+                android:background="@drawable/progress_track_bg"/>
+
+            <View
+                android:id="@+id/progressBar"
+                android:layout_width="0dp"
+                android:layout_height="2dp"
+                android:background="@drawable/progress_gradient"
+                android:layout_gravity="start"/>
+        </FrameLayout>
+
+        <!-- Pourcentage -->
+        <TextView
+            android:id="@+id/percentText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textColor="#2A5C3E"
+            android:textSize="10sp"
+            android:letterSpacing="0.15"
+            android:layout_marginTop="10dp"/>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

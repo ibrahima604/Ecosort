@@ -167,15 +167,12 @@ public class StatsActivity extends AppCompatActivity {
             }
             int totalNonPlastique = total - totalPlastique;
 
-            // cartes chiffres
             tvTotalScans.setText(String.valueOf(total));
             tvTotalPlastique.setText(String.valueOf(totalPlastique));
             tvTotalNonPlastique.setText(String.valueOf(totalNonPlastique));
 
-            // diagramme
             setupPieChart(totalPlastique, totalNonPlastique);
 
-            // liste RecyclerView
             List<TypeStatItem> items = new ArrayList<>();
             for (Map.Entry<Integer, Integer> e : countMap.entrySet()) {
                 String label = labelMap.getOrDefault(e.getKey(), "Type " + e.getKey());
@@ -191,17 +188,17 @@ public class StatsActivity extends AppCompatActivity {
     }
 
     private void setupPieChart(int plastique, int nonPlastique) {
-        List<PieEntry>  entries = new ArrayList<>();
-        List<Integer>   colors  = new ArrayList<>();
+        List<PieEntry> entries = new ArrayList<>();
+        List<Integer>  colors  = new ArrayList<>();
 
-        // ROUGE pour plastique, VERT pour non plastique
+        // VERT pour plastique (bien trié), ROUGE pour non plastique
         if (plastique > 0) {
             entries.add(new PieEntry(plastique, "Plastique"));
-            colors.add(Color.parseColor("#F44336"));
+            colors.add(Color.parseColor("#4CAF50"));   // vert
         }
         if (nonPlastique > 0) {
             entries.add(new PieEntry(nonPlastique, "Non Plastique"));
-            colors.add(Color.parseColor("#4CAF50"));
+            colors.add(Color.parseColor("#F44336"));   // rouge
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "");
@@ -217,26 +214,20 @@ public class StatsActivity extends AppCompatActivity {
         pieChart.setData(data);
         pieChart.setUsePercentValues(true);
 
-        // Trou central
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(Color.WHITE);
         pieChart.setHoleRadius(50f);
         pieChart.setTransparentCircleRadius(56f);
-        pieChart.setTransparentCircleColor(Color.parseColor("#F1F8F1"));
+        pieChart.setTransparentCircleColor(Color.parseColor("#E8F5E9"));
 
-        // Texte central
         pieChart.setCenterText("🗑️\nDéchets");
         pieChart.setCenterTextSize(14f);
-        pieChart.setCenterTextColor(Color.parseColor("#1B5E20"));
+        pieChart.setCenterTextColor(Color.parseColor("#2E7D32"));
 
-        // Description et légende désactivées (on a la légende manuelle en XML)
         pieChart.getDescription().setEnabled(false);
         pieChart.getLegend().setEnabled(false);
-
-        // Labels sur les tranches
         pieChart.setDrawEntryLabels(false);
 
-        // Animation
         pieChart.animateY(1000);
         pieChart.invalidate();
     }
@@ -262,14 +253,24 @@ public class StatsActivity extends AppCompatActivity {
         });
     }
 
-    // ── Modèle ──
+    // ═══════════════════════════════════════════════════════
+    //  Modèle
+    // ═══════════════════════════════════════════════════════
+
     static class TypeStatItem {
         String etiquette;
         int count, pourcentage;
-        TypeStatItem(String e, int c, int p) { etiquette=e; count=c; pourcentage=p; }
+        TypeStatItem(String e, int c, int p) {
+            etiquette  = e;
+            count      = c;
+            pourcentage = p;
+        }
     }
 
-    // ── Adapter ──
+    // ═══════════════════════════════════════════════════════
+    //  Adapter RecyclerView
+    // ═══════════════════════════════════════════════════════
+
     static class TypeDechetStatAdapter
             extends RecyclerView.Adapter<TypeDechetStatAdapter.VH> {
 
@@ -300,10 +301,11 @@ public class StatsActivity extends AppCompatActivity {
             return "🗑️";
         }
 
-        @NonNull @Override
-        public VH onCreateViewHolder(@NonNull ViewGroup p, int v) {
-            return new VH(LayoutInflater.from(p.getContext())
-                    .inflate(R.layout.item_dechet_stat, p, false));
+        @NonNull
+        @Override
+        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return new VH(LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_dechet_stat, parent, false));
         }
 
         @Override
@@ -314,20 +316,23 @@ public class StatsActivity extends AppCompatActivity {
             h.count.setText(String.valueOf(item.count));
             h.pct.setText(item.pourcentage + "% du total");
 
-            // couleur barre : rouge plastique, vert non plastique
+            // VERT pour plastique, ROUGE pour non plastique
             String l = item.etiquette.toLowerCase();
             int barColor = (l.contains("plastique") && !l.contains("non"))
-                    ? Color.parseColor("#F44336")
-                    : Color.parseColor("#4CAF50");
+                    ? Color.parseColor("#4CAF50")   // vert
+                    : Color.parseColor("#F44336");  // rouge
+
             h.bar.setIndicatorColor(barColor);
             h.bar.setProgressCompat(item.pourcentage, true);
         }
 
-        @Override public int getItemCount() { return items.size(); }
+        @Override
+        public int getItemCount() { return items.size(); }
 
         static class VH extends RecyclerView.ViewHolder {
             TextView icon, label, count, pct;
             LinearProgressIndicator bar;
+
             VH(@NonNull View v) {
                 super(v);
                 icon  = v.findViewById(R.id.tvIconType);
