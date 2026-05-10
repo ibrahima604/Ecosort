@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class BackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BackendApplication.class, args);
+        SpringApplication app = new SpringApplication(BackendApplication.class);
+        app.addInitializers(new EnvLoader()); // ← charge .env avant tout
+        app.run(args);
     }
 }

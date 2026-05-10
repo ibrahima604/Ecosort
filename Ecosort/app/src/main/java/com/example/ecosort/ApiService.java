@@ -62,4 +62,10 @@ public interface ApiService {
     /** Liste des types de déchets (synchronisation au démarrage) */
     @GET("api/dechets/types")
     Call<List<TypeDechetResponse>> getAllTypesDechets();
+    // Feedback
+    @POST("api/feedback")
+    Call<FeedbackResponse> createFeedback(@Body FeedbackRequest request);
+
+    @GET("api/feedback/user/{idClient}")
+    Call<List<FeedbackResponse>> getFeedbackByUser(@Path("idClient") String idClient);
 }

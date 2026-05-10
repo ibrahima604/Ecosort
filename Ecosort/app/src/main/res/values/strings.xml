@@ -9,9 +9,10 @@
     <string name="titre_header">EcoSort</string>
     <string name="slogan">Vers un tri responsable 🌿"</string>
     <string name="scan">Scanner</string>
-    <string name="base_url">https://a0b7-2a01-cb04-d5c-4e00-5972-759b-a355-1467.ngrok-free.app/</string>
+    <string name="base_url">https://5475-2a01-cb04-d5c-4e00-599a-3bda-1119-a5af.ngrok-free.app/</string>
     <string name="camera">Camera Preview</string>
     <string name="upload">Upload</string>
+    <string name="menu_feedback">Feedback</string>
     <string name="demarrage">Développement durable, recyclons pour un avenir meilleur !</string>
     <!-- Obligatoire pour le toggle -->
     <string name="open_drawer">Ouvrir le menu</string>

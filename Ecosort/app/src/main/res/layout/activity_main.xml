@@ -9,87 +9,102 @@
     tools:openDrawer="start">
 
     <!-- ================== CONTENU PRINCIPAL ================== -->
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
 
-        <!-- Toolbar -->
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
+        <!-- Layout accueil caméra -->
+        <LinearLayout
+            android:id="@+id/layoutHome"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/teal_700"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-            android:elevation="4dp" />
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        <!-- ================== ACCUEIL ================== -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/container"
+            <!-- Toolbar -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/teal_700"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                android:elevation="4dp" />
+
+            <!-- ================== ACCUEIL ================== -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/container"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="#F5F5F5"
+                android:padding="20dp">
+
+                <!-- Cadre caméra -->
+                <FrameLayout
+                    android:id="@+id/cameraFrame"
+                    android:layout_width="280dp"
+                    android:layout_height="280dp"
+                    android:background="@drawable/camera_frame_bg"
+                    app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent">
+
+                    <androidx.camera.view.PreviewView
+                        android:id="@+id/previewView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                </FrameLayout>
+
+                <!-- Boutons -->
+                <LinearLayout
+                    android:id="@+id/buttonContainer"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnScan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="55dp"
+                        android:layout_marginEnd="10dp"
+                        android:backgroundTint="@color/teal_700"
+                        android:gravity="center"
+                        android:maxWidth="320dp"
+                        android:minWidth="120dp"
+                        android:text="@string/scan"
+                        android:textAllCaps="false" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnUpload"
+                        android:layout_width="wrap_content"
+                        android:layout_height="55dp"
+                        android:backgroundTint="@color/teal_700"
+                        android:gravity="center"
+                        android:maxWidth="320dp"
+                        android:minWidth="120dp"
+                        android:text="@string/upload"
+                        android:textAllCaps="false" />
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+        <!-- Fragment container — par dessus l'accueil -->
+        <FrameLayout
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="#F5F5F5"
-            android:padding="20dp">
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
-            <!-- Cadre caméra -->
-            <FrameLayout
-                android:id="@+id/cameraFrame"
-                android:layout_width="280dp"
-                android:layout_height="280dp"
-                android:background="@drawable/camera_frame_bg"
-                app:layout_constraintBottom_toTopOf="@+id/buttonContainer"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <androidx.camera.view.PreviewView
-                    android:id="@+id/previewView"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            </FrameLayout>
-
-            <!-- Boutons -->
-            <LinearLayout
-                android:id="@+id/buttonContainer"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:weightSum="2"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnScan"
-                    android:layout_width="wrap_content"
-                    android:layout_height="55dp"
-                    android:layout_marginEnd="10dp"
-                    android:backgroundTint="@color/teal_700"
-                    android:gravity="center"
-                    android:maxWidth="320dp"
-                    android:minWidth="120dp"
-                    android:text="@string/scan"
-                    android:textAllCaps="false" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnUpload"
-                    android:layout_width="wrap_content"
-                    android:layout_height="55dp"
-                    android:backgroundTint="@color/teal_700"
-                    android:gravity="center"
-                    android:maxWidth="320dp"
-                    android:minWidth="120dp"
-                    android:text="@string/upload"
-                    android:textAllCaps="false" />
-
-            </LinearLayout>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 
     <!-- ================== NAVIGATION DRAWER ================== -->
     <com.google.android.material.navigation.NavigationView

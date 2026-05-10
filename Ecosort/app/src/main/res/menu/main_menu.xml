@@ -27,6 +27,11 @@
             android:id="@+id/nav_tips"
             android:title="@string/menu_tips"
             android:icon="@drawable/ic_tips" />
+        <item
+            android:id="@+id/nav_feedback"
+            android:title="@string/menu_feedback"
+            android:icon="@drawable/ic_feedback" />
+
 
         <item
             android:id="@+id/nav_settings"

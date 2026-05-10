@@ -11,6 +11,7 @@ import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME     = "ecosort_prefs";
     private static final String KEY_REGISTERED = "user_registered";
     private static final String KEY_EMAIL      = "user_email";
-    private static final String KEY_USER_ID    = "user_id";   // UUID Supabase
+    private static final String KEY_USER_ID    = "user_id";
     private static final String ADMIN_EMAIL    = "Admin604@gmail.com";
 
     PreviewView    previewView;
@@ -61,6 +62,10 @@ public class MainActivity extends AppCompatActivity {
 
     private PlasticClassifier classifier;
     private MaterialButton     btnScan;
+
+    // ── Conteneurs ────────────────────────────────────────────────────────────
+    private FrameLayout fragmentContainer;
+    private View        layoutHome;
 
     // =========================================================
     //  Launchers caméra / galerie
@@ -103,10 +108,12 @@ public class MainActivity extends AppCompatActivity {
         RetrofitClient.init(this);
         classifier = new PlasticClassifier(this);
 
-        drawerLayout   = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.navigation_view);
-        toolbar        = findViewById(R.id.toolbar);
-        previewView    = findViewById(R.id.previewView);
+        drawerLayout      = findViewById(R.id.drawer_layout);
+        navigationView    = findViewById(R.id.navigation_view);
+        toolbar           = findViewById(R.id.toolbar);
+        previewView       = findViewById(R.id.previewView);
+        fragmentContainer = findViewById(R.id.fragment_container);
+        layoutHome        = findViewById(R.id.layoutHome);
 
         // Bouton galerie
         MaterialButton btnUpload = findViewById(R.id.btnUpload);
@@ -137,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView.setNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
             if (id == R.id.nav_home) {
+                showHome();                                                      // ← retour accueil
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
@@ -145,17 +153,22 @@ public class MainActivity extends AppCompatActivity {
             else if (id == R.id.nav_stats)    startActivity(new Intent(this, StatsActivity.class));
             else if (id == R.id.nav_tips)     startActivity(new Intent(this, ConseillsActivity.class));
             else if (id == R.id.nav_history)  startActivity(new Intent(this, HistoriqueActivity.class));
-            else if (id == R.id.nav_settings) Toast.makeText(this,
-                    "Paramètres (bientôt)", Toast.LENGTH_SHORT).show();
+            else if (id == R.id.nav_feedback) openFeedbackFragment();           // ← feedback
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
 
+        // Bouton retour : si fragment ouvert → revenir à l'accueil
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() {
-                if (drawerLayout.isDrawerOpen(GravityCompat.START))
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                     drawerLayout.closeDrawer(GravityCompat.START);
-                else { setEnabled(false); getOnBackPressedDispatcher().onBackPressed(); }
+                } else if (fragmentContainer.getVisibility() == View.VISIBLE) {
+                    showHome();                                                  // ← back depuis feedback
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
             }
         });
 
@@ -173,8 +186,30 @@ public class MainActivity extends AppCompatActivity {
         if (!isRegistered) showUserInfoDialog();
         else               routeByEmail(savedEmail);
 
-        // Synchronisation différée des déchets offline
         syncUnsyncedDechets();
+    }
+
+    // =========================================================
+    //  Navigation Feedback
+    // =========================================================
+
+    private void openFeedbackFragment() {
+        fragmentContainer.setVisibility(View.VISIBLE);
+        layoutHome.setVisibility(View.GONE);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, new FeedbackFragment())
+                .addToBackStack("feedback")
+                .commit();
+    }
+
+    private void showHome() {
+        // Vide le back stack des fragments
+        getSupportFragmentManager()
+                .popBackStack(null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        fragmentContainer.setVisibility(View.GONE);
+        layoutHome.setVisibility(View.VISIBLE);
     }
 
     // =========================================================
@@ -192,7 +227,6 @@ public class MainActivity extends AppCompatActivity {
             PlasticClassifier.Result result = PlasticClassifier.interpret(score);
             runOnUiThread(() -> {
                 if (btnScan != null) btnScan.setEnabled(true);
-                // Sauvegarde uniquement si résultat net (pas UNCERTAIN ni ERROR)
                 if (result.type == PlasticClassifier.Type.PLASTIC ||
                         result.type == PlasticClassifier.Type.NOT_PLASTIC) {
                     saveDechet(result);
@@ -206,36 +240,27 @@ public class MainActivity extends AppCompatActivity {
     //  Sauvegarde déchet — local PUIS Supabase
     // =========================================================
 
-    /**
-     * Étape 1 : sauvegarde immédiate en SQLite local (même sans réseau).
-     * Étape 2 : envoi à Supabase via Spring Boot REST.
-     */
     private void saveDechet(PlasticClassifier.Result result) {
         String typeLabel = (result.type == PlasticClassifier.Type.PLASTIC)
                 ? "Plastique" : "Non plastique";
-        // id_type_dechet : 1 = Plastique, 2 = Non plastique (idem Supabase)
         int typeId = (result.type == PlasticClassifier.Type.PLASTIC) ? 1 : 2;
 
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         String userEmail = prefs.getString(KEY_EMAIL,   "");
         String userId    = prefs.getString(KEY_USER_ID, "");
 
-        // ── 1. SQLite local (toujours, même hors ligne) ──────────────────────
-        DatabaseHelper db     = new DatabaseHelper(this);
+        DatabaseHelper db      = new DatabaseHelper(this);
         long           localId = db.insertDechet(typeLabel, userEmail);
 
-        // ── 2. Supabase via API ───────────────────────────────────────────────
         if (!userId.isEmpty()) {
             postDechetToApi(typeId, userId, localId);
         } else {
-            // UUID pas encore en cache → on le récupère d'abord
             RetrofitClient.getApiService().getUserByEmail(userEmail)
                     .enqueue(new Callback<UserResponse>() {
                         @Override public void onResponse(Call<UserResponse> call,
                                                          Response<UserResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 String id = response.body().getIdClient();
-                                // Mise en cache de l'UUID pour les prochains scans
                                 getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                                         .edit().putString(KEY_USER_ID, id).apply();
                                 postDechetToApi(typeId, id, localId);
@@ -248,7 +273,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Appel REST POST /api/dechets, marque le déchet comme synchronisé en cas de succès */
     private void postDechetToApi(int typeId, String userId, long localId) {
         String date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
                 .format(new Date());
@@ -260,7 +284,6 @@ public class MainActivity extends AppCompatActivity {
                                                      Response<DechetResponse> response) {
                         if (response.isSuccessful()) {
                             Log.d(TAG, "Déchet enregistré sur Supabase ✅");
-                            // Marque comme synchronisé en local
                             new DatabaseHelper(MainActivity.this).markDechetSynced(localId);
                         } else {
                             Log.w(TAG, "Erreur API déchet : " + response.code());
@@ -272,10 +295,6 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    /**
-     * Synchronise les déchets enregistrés hors ligne dès qu'on a le réseau.
-     * Appelé au démarrage de l'app.
-     */
     private void syncUnsyncedDechets() {
         String userId = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getString(KEY_USER_ID, "");
@@ -287,7 +306,6 @@ public class MainActivity extends AppCompatActivity {
             for (Map<String, String> row : pending) {
                 long   localId = Long.parseLong(row.get("id"));
                 int    typeId  = Integer.parseInt(row.get("type_id"));
-                String date    = row.get("date");
                 postDechetToApi(typeId, userId, localId);
                 Log.d(TAG, "Sync offline déchet id=" + localId);
             }
@@ -301,7 +319,6 @@ public class MainActivity extends AppCompatActivity {
     private void showResultDialog(PlasticClassifier.Result result) {
         if (result.type == PlasticClassifier.Type.ERROR) return;
 
-        // Cas incertain : pas de bouton Maps, juste "Réessayer"
         if (result.type == PlasticClassifier.Type.UNCERTAIN) {
             new AlertDialog.Builder(this)
                     .setTitle("Résultat incertain")
@@ -318,12 +335,6 @@ public class MainActivity extends AppCompatActivity {
         String message = result.message + "\n\nScore : " + result.percent + "%" +
                 "\n\n✅ Déchet enregistré dans votre historique.";
 
-        /*
-         * Recherche Google Maps :
-         *  - Plastique  → poubelle de recyclage (jaune/verte selon ville)
-         *  - Autre      → poubelle ordinaire
-         * "geo:0,0?q=..." utilise la position GPS actuelle comme centre de recherche.
-         */
         String mapsQuery = isPlastic
                 ? "poubelle+de+recyclage+près+de+moi"
                 : "poubelle+ordures+ménagères+près+de+moi";
@@ -339,10 +350,6 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
-    /**
-     * Ouvre Google Maps avec la recherche de poubelle.
-     * Si Maps n'est pas installé → navigateur web.
-     */
     private void openMaps(String query) {
         android.net.Uri uri = android.net.Uri.parse("geo:0,0?q=" + query);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, uri);
@@ -351,7 +358,6 @@ public class MainActivity extends AppCompatActivity {
         if (mapIntent.resolveActivity(getPackageManager()) != null) {
             startActivity(mapIntent);
         } else {
-            // Fallback navigateur
             startActivity(new Intent(Intent.ACTION_VIEW,
                     android.net.Uri.parse("https://www.google.com/maps/search/" + query)));
         }
@@ -381,7 +387,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
         }
-        // Si user normal : on reste sur MainActivity, rien à faire
     }
 
     // =========================================================
@@ -434,7 +439,6 @@ public class MainActivity extends AppCompatActivity {
                                                          Response<UserResponse> response) {
                             if (response.isSuccessful() && response.body() != null) {
                                 UserResponse existing = response.body();
-                                // Cache l'UUID
                                 getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit()
                                         .putString(KEY_USER_ID, existing.getIdClient()).apply();
                                 saveUserLocally(existing.getNom(), existing.getPrenom(),
@@ -458,7 +462,6 @@ public class MainActivity extends AppCompatActivity {
                 .enqueue(new Callback<Void>() {
                     @Override public void onResponse(Call<Void> call, Response<Void> response) {
                         if (response.isSuccessful()) {
-                            // Récupère l'UUID tout de suite après création
                             RetrofitClient.getApiService().getUserByEmail(email)
                                     .enqueue(new Callback<UserResponse>() {
                                         @Override public void onResponse(Call<UserResponse> c2,
